@@ -2,8 +2,13 @@ name: publish
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
+    paths:
+      - '.github/workflows/publish.yml'
+      - 'pom.xml'
   workflow_dispatch:
 
 jobs:
@@ -14,6 +19,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -28,12 +35,17 @@ jobs:
           version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version | tail -n 1)
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Check release tag
-        if: github.event_name == 'push'
+      - name: Check release reference
         run: |
-          expected_ref="refs/tags/v${{ steps.version.outputs.value }}"
-          if [ "$GITHUB_REF" != "$expected_ref" ]; then
-            echo "Expected tag $expected_ref but got $GITHUB_REF" >&2
+          expected_tag="v${{ steps.version.outputs.value }}"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            expected_ref="refs/tags/$expected_tag"
+            if [ "$GITHUB_REF" != "$expected_ref" ]; then
+              echo "Expected tag $expected_ref but got $GITHUB_REF" >&2
+              exit 1
+            fi
+          elif ! git rev-parse -q --verify "refs/tags/$expected_tag" >/dev/null; then
+            echo "Expected existing release tag $expected_tag for branch-triggered publish" >&2
             exit 1
           fi
 
