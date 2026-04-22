@@ -76,14 +76,17 @@ final public class SpecialOperations {
 	 * <code>a2</code>.
 	 */
 	public static Automaton overlap(Automaton a1, Automaton a2) {
+		AutomatonTimeouts.check("overlap");
 		Automaton b1 = a1.cloneExpanded();
 		b1.determinize();
 		acceptToAccept(b1);
 		Automaton b2 = a2.cloneExpanded();
 		reverse(b2);
+		AutomatonTimeouts.check("overlap");
 		b2.determinize();
 		acceptToAccept(b2);
 		reverse(b2);
+		AutomatonTimeouts.check("overlap");
 		b2.determinize();
 		return b1.intersection(b2).minus(BasicAutomata.makeEmptyString());
 	}

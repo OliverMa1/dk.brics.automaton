@@ -133,6 +133,7 @@ public class State implements Serializable, Comparable<State> {
 	
 	/** Returns transitions sorted by (min, reverse max, to) or (to, min, reverse max) */
 	Transition[] getSortedTransitionArray(boolean to_first) {
+		AutomatonTimeouts.check("getSortedTransitionArray");
 		Transition[] e = transitions.toArray(new Transition[transitions.size()]);
 		Arrays.sort(e, new TransitionComparator(to_first));
 		return e;

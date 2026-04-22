@@ -51,6 +51,7 @@ final public class MinimizationOperations {
 	 */
 	public static void minimize(Automaton a) {
 		if (!a.isSingleton()) {
+			AutomatonTimeouts.check("minimize");
 			switch (Automaton.minimization) {
 			case Automaton.MINIMIZE_HUFFMAN:
 				minimizeHuffman(a);
@@ -72,6 +73,7 @@ final public class MinimizationOperations {
 		Transition[] t1 = transitions[n1];
 		Transition[] t2 = transitions[n2];
 		for (int k1 = 0, k2 = 0; k1 < t1.length && k2 < t2.length;) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			if (t1[k1].max < t2[k2].min)
 				k1++;
 			else if (t2[k2].max < t1[k1].min)
@@ -99,6 +101,7 @@ final public class MinimizationOperations {
 		Transition[] t1 = transitions[n1];
 		Transition[] t2 = transitions[n2];
 		for (int k1 = 0, k2 = 0; k1 < t1.length && k2 < t2.length;) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			if (t1[k1].max < t2[k2].min)
 				k1++;
 			else if (t2[k2].max < t1[k1].min)
@@ -125,6 +128,7 @@ final public class MinimizationOperations {
 	}
 
 	private static void markPair(boolean[][] mark, ArrayList<ArrayList<HashSet<IntPair>>> triggers, int n1, int n2) {
+		AutomatonTimeouts.check("minimizeHuffman");
 		mark[n1][n2] = true;
 		if (triggers.get(n1).get(n2) != null) {
 			for (IntPair p : triggers.get(n1).get(n2)) {
@@ -150,6 +154,7 @@ final public class MinimizationOperations {
 	 * Minimizes the given automaton using Huffman's algorithm. 
 	 */
 	public static void minimizeHuffman(Automaton a) {
+		AutomatonTimeouts.check("minimizeHuffman");
 		a.determinize();
 		a.totalize();
 		Set<State> ss = a.getStates();
@@ -164,6 +169,7 @@ final public class MinimizationOperations {
 		}
 		// initialize marks based on acceptance status and find transition arrays
 		for (int n1 = 0; n1 < states.length; n1++) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			states[n1].number = n1;
 			transitions[n1] = states[n1].getSortedTransitionArray(false);
 			for (int n2 = n1 + 1; n2 < states.length; n2++)
@@ -172,19 +178,24 @@ final public class MinimizationOperations {
 		}
 		// for all pairs, see if states agree
 		for (int n1 = 0; n1 < states.length; n1++)
-			for (int n2 = n1 + 1; n2 < states.length; n2++)
+			for (int n2 = n1 + 1; n2 < states.length; n2++) {
+				AutomatonTimeouts.check("minimizeHuffman");
 				if (!mark[n1][n2]) {
 					if (statesAgree(transitions, mark, n1, n2))
 						addTriggers(transitions, triggers, n1, n2);
 					else
 						markPair(mark, triggers, n1, n2);
 				}
+			}
 		// assign equivalence class numbers to states
 		int numclasses = 0;
-		for (int n = 0; n < states.length; n++)
+		for (int n = 0; n < states.length; n++) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			states[n].number = -1;
+		}
 		for (int n1 = 0; n1 < states.length; n1++)
 			if (states[n1].number == -1) {
+				AutomatonTimeouts.check("minimizeHuffman");
 				states[n1].number = numclasses;
 				for (int n2 = n1 + 1; n2 < states.length; n2++)
 					if (!mark[n1][n2])
@@ -198,12 +209,14 @@ final public class MinimizationOperations {
 		// select a class representative for each class and find the new initial
 		// state
 		for (int n = 0; n < states.length; n++) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			newstates[states[n].number].number = n;
 			if (states[n] == a.initial)
 				a.initial = newstates[states[n].number];
 		}
 		// build transitions and set acceptance
 		for (int n = 0; n < numclasses; n++) {
+			AutomatonTimeouts.check("minimizeHuffman");
 			State s = newstates[n];
 			s.accept = states[s.number].accept;
 			for (Transition t : states[s.number].transitions)
@@ -218,7 +231,9 @@ final public class MinimizationOperations {
 	public static void minimizeBrzozowski(Automaton a) {
 		if (a.isSingleton())
 			return;
+		AutomatonTimeouts.check("minimizeBrzozowski");
 		BasicOperations.determinize(a, SpecialOperations.reverse(a));
+		AutomatonTimeouts.check("minimizeBrzozowski");
 		BasicOperations.determinize(a, SpecialOperations.reverse(a));
 	}
 	
@@ -226,6 +241,7 @@ final public class MinimizationOperations {
 	 * Minimizes the given automaton using Hopcroft's algorithm. 
 	 */
 	public static void minimizeHopcroft(Automaton a) {
+		AutomatonTimeouts.check("minimizeHopcroft");
 		a.determinize();
 		Set<Transition> tr = a.initial.getTransitions();
 		if (tr.size() == 1) {
@@ -239,6 +255,7 @@ final public class MinimizationOperations {
 		State[] states = new State[ss.size()];
 		int number = 0;
 		for (State q : ss) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			states[number] = q;
 			q.number = number++;
 		}
@@ -246,6 +263,7 @@ final public class MinimizationOperations {
 		// initialize data structures
 		ArrayList<ArrayList<LinkedList<State>>> reverse = new ArrayList<ArrayList<LinkedList<State>>>();
 		for (int q = 0; q < states.length; q++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			ArrayList<LinkedList<State>> v = new ArrayList<LinkedList<State>>();
 			initialize(v, sigma.length);
 			reverse.add(v);
@@ -265,6 +283,7 @@ final public class MinimizationOperations {
 		ArrayList<ArrayList<State>> splitblock = new ArrayList<ArrayList<State>>();
 		initialize(splitblock, states.length);
 		for (int q = 0; q < states.length; q++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			splitblock.set(q, new ArrayList<State>());
 			partition.set(q, new LinkedList<State>());
 			for (int x = 0; x < sigma.length; x++) {
@@ -274,6 +293,7 @@ final public class MinimizationOperations {
 		}
 		// find initial partition and reverse edges
 		for (int q = 0; q < states.length; q++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			State qq = states[q];
 			int j;
 			if (qq.accept)
@@ -291,12 +311,15 @@ final public class MinimizationOperations {
 		}
 		// initialize active sets
 		for (int j = 0; j <= 1; j++)
-			for (int x = 0; x < sigma.length; x++)
+			for (int x = 0; x < sigma.length; x++) {
+				AutomatonTimeouts.check("minimizeHopcroft");
 				for (State qq : partition.get(j))
 					if (reverse_nonempty[qq.number][x])
 						active2[qq.number][x] = active[j][x].add(qq);
+			}
 		// initialize pending
 		for (int x = 0; x < sigma.length; x++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			int a0 = active[0][x].size;
 			int a1 = active[1][x].size;
 			int j;
@@ -310,13 +333,15 @@ final public class MinimizationOperations {
 		// process pending until fixed point
 		int k = 2;
 		while (!pending.isEmpty()) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			IntPair ip = pending.removeFirst();
 			int p = ip.n1;
 			int x = ip.n2;
 			pending2[x][p] = false;
 			// find states that need to be split off their blocks
 			for (StateListNode m = active[p][x].first; m != null; m = m.next)
-				for (State s : reverse.get(m.q.number).get(x))
+				for (State s : reverse.get(m.q.number).get(x)) {
+					AutomatonTimeouts.check("minimizeHopcroft");
 					if (!split2[s.number]) {
 						split2[s.number] = true;
 						split.add(s);
@@ -327,8 +352,10 @@ final public class MinimizationOperations {
 							refine.add(j);
 						}
 					}
+				}
 			// refine blocks
 			for (int j : refine) {
+				AutomatonTimeouts.check("minimizeHopcroft");
 				if (splitblock.get(j).size() < partition.get(j).size()) {
 					LinkedList<State> b1 = partition.get(j);
 					LinkedList<State> b2 = partition.get(k);
@@ -369,6 +396,7 @@ final public class MinimizationOperations {
 		// make a new state for each equivalence class, set initial state
 		State[] newstates = new State[k];
 		for (int n = 0; n < newstates.length; n++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			State s = new State();
 			newstates[n] = s;
 			for (State q : partition.get(n)) {
@@ -381,6 +409,7 @@ final public class MinimizationOperations {
 		}
 		// build transitions and set acceptance
 		for (int n = 0; n < newstates.length; n++) {
+			AutomatonTimeouts.check("minimizeHopcroft");
 			State s = newstates[n];
 			s.accept = states[s.number].accept;
 			for (Transition t : states[s.number].transitions)
@@ -393,6 +422,7 @@ final public class MinimizationOperations {
 	 * Minimizes the given automaton using Valmari's algorithm.
 	 */
 	public static void minimizeValmari(Automaton automaton) {
+		AutomatonTimeouts.check("minimizeValmari");
 		automaton.determinize();
 		Set<State> states = automaton.getStates();
 		splitTransitions(states);
@@ -408,6 +438,7 @@ final public class MinimizationOperations {
 		Automaton.setStateNumbers(states);
 		int number = 0;
 		for (State s : automaton.getStates()) {
+			AutomatonTimeouts.check("minimizeValmari");
 			for (Transition t : s.getTransitions()) {
 				tails[number] = s.number;
 				labels[number] = new IntPair(t.min, t.max);
@@ -416,8 +447,10 @@ final public class MinimizationOperations {
 			}
 		}
 		// make initial block partition
-		for (State s : acceptStates)
+		for (State s : acceptStates) {
+			AutomatonTimeouts.check("minimizeValmari");
 			blocks.mark(s.number);
+		}
 		blocks.split();
 		// make initial transition partition
 		if (transitionCount > 0) {
@@ -425,6 +458,7 @@ final public class MinimizationOperations {
 			cords.setCount = cords.markedElementCount[0] = 0;
 			IntPair a = labels[cords.elements[0]];
 			for (int i = 0; i < transitionCount; ++i) {
+				AutomatonTimeouts.check("minimizeValmari");
 				int t = cords.elements[i];
 				if (labels[t].n1 != a.n1 || labels[t].n2 != a.n2) {
 					a = labels[t];
@@ -442,6 +476,7 @@ final public class MinimizationOperations {
 		int[] F = new int[stateCount+1];
 		makeAdjacent(A, F, heads, stateCount, transitionCount);
 		for (int c = 0; c < cords.setCount; ++c) {
+			AutomatonTimeouts.check("minimizeValmari");
 			for (int i = cords.first[c]; i < cords.past[c]; ++i)
 				blocks.mark(tails[cords.elements[i]]);
 			blocks.split();
@@ -457,12 +492,14 @@ final public class MinimizationOperations {
 		// build states and acceptance states
 		State[] newStates = new State[blocks.setCount];
 		for (int bl = 0; bl < blocks.setCount; ++bl) {
+			AutomatonTimeouts.check("minimizeValmari");
 			newStates[bl] = new State();
 			if (blocks.first[bl] < acceptStates.size())
 				newStates[bl].accept = true;
 		}
 		// build transitions
 		for (int t = 0; t < transitionCount; ++t) {
+			AutomatonTimeouts.check("minimizeValmari");
 			if (blocks.locations[tails[t]] == blocks.first[blocks.setNo[tails[t]]]) {
 				State tail = newStates[blocks.setNo[tails[t]]];
 				State head = newStates[blocks.setNo[heads[t]]];
@@ -474,25 +511,35 @@ final public class MinimizationOperations {
 	}
 
 	private static void makeAdjacent(int[] A, int[] F, int[] K, int nn, int mm) {
-		for (int q=0; q <= nn; ++q)
+		for (int q=0; q <= nn; ++q) {
+			AutomatonTimeouts.check("minimizeValmari");
 			F[q] = 0;
-		for (int t=0; t < mm; ++t)
+		}
+		for (int t=0; t < mm; ++t) {
+			AutomatonTimeouts.check("minimizeValmari");
 			++F[K[t]];
-		for (int q=0; q < nn; ++q)
+		}
+		for (int q=0; q < nn; ++q) {
+			AutomatonTimeouts.check("minimizeValmari");
 			F[q+1] += F[q];
-		for (int t = mm; t-- > 0;)
+		}
+		for (int t = mm; t-- > 0;) {
+			AutomatonTimeouts.check("minimizeValmari");
 			A[--F[K[t]]] = t;
+		}
 	}
 
 	private static void splitTransitions(Set<State> states) {
 		TreeSet<Character> pointSet = new TreeSet<Character>();
 		for (State s : states) {
+			AutomatonTimeouts.check("splitTransitions");
 			for (Transition t : s.getTransitions()) {
 				pointSet.add(t.min);
 				pointSet.add(t.max);
 			}
 		}
 		for (State s : states) {
+			AutomatonTimeouts.check("splitTransitions");
 			Set<Transition> transitions = s.getTransitions();
 			s.resetTransitions();
 			for (Transition t : transitions) {
@@ -506,6 +553,7 @@ final public class MinimizationOperations {
 				intersection.retainAll(tailSet);
 				char start = t.min;
 				for (Character c : intersection) {
+					AutomatonTimeouts.check("splitTransitions");
 					s.addTransition(new Transition(start, t.to));
 					s.addTransition(new Transition(c, t.to));
 					if (c - start > 1)

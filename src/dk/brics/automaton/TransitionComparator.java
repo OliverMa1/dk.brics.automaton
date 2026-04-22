@@ -46,6 +46,7 @@ class TransitionComparator implements Comparator<Transition>, Serializable {
 	 * Compares by (min, reverse max, to) or (to, min, reverse max). 
 	 */
 	public int compare(Transition t1, Transition t2) {
+		AutomatonTimeouts.check("transitionSort");
 		if (to_first) {
 			if (t1.to != t2.to) {
 				if (t1.to == null)

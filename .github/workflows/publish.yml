@@ -1,0 +1,78 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  stage-maven-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Read project version
+        id: version
+        run: |
+          version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version | tail -n 1)
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check release tag
+        if: github.event_name == 'push'
+        run: |
+          expected_ref="refs/tags/v${{ steps.version.outputs.value }}"
+          if [ "$GITHUB_REF" != "$expected_ref" ]; then
+            echo "Expected tag $expected_ref but got $GITHUB_REF" >&2
+            exit 1
+          fi
+
+      - name: Check out published repository
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Prepare published repository
+        run: |
+          mkdir -p gh-pages/releases
+          touch gh-pages/.nojekyll
+
+      - name: Publish Maven repository contents
+        run: |
+          mvn -B deploy -DskipTests \
+            -DaltDeploymentRepository=github-pages::default::file:${GITHUB_WORKSPACE}/gh-pages/releases
+
+      - name: Remove Git metadata
+        run: rm -rf gh-pages/.git
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gh-pages
+
+  deploy-pages:
+    needs: stage-maven-repo
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4

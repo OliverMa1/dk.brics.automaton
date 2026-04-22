@@ -302,11 +302,13 @@ final public class BasicOperations {
 		worklist.add(p);
 		newstates.put(p, p);
 		while (worklist.size() > 0) {
+			AutomatonTimeouts.check("intersection");
 			p = worklist.removeFirst();
 			p.s.accept = p.s1.accept && p.s2.accept;
 			Transition[] t1 = transitions1[p.s1.number];
 			Transition[] t2 = transitions2[p.s2.number];
 			for (int n1 = 0, b2 = 0; n1 < t1.length; n1++) {
+				AutomatonTimeouts.check("intersection");
 				while (b2 < t2.length && t2[b2].max < t1[n1].min)
 					b2++;
 				for (int n2 = b2; n2 < t2.length && t1[n1].max >= t2[n2].min; n2++) 
@@ -356,6 +358,7 @@ final public class BasicOperations {
 		worklist.add(p);
 		visited.add(p);
 		while (worklist.size() > 0) {
+			AutomatonTimeouts.check("subsetOf");
 			p = worklist.removeFirst();
 			if (p.s1.accept && !p.s2.accept)
 				return false;
@@ -461,6 +464,7 @@ final public class BasicOperations {
 		a.initial = new State();
 		newstate.put(initialset, a.initial);
 		while (worklist.size() > 0) {
+			AutomatonTimeouts.check("determinize");
 			Set<State> s = worklist.removeFirst();
 			State r = newstate.get(s);
 			for (State q : s)
@@ -469,6 +473,7 @@ final public class BasicOperations {
 					break;
 				}
 			for (int n = 0; n < points.length; n++) {
+				AutomatonTimeouts.check("determinize");
 				Set<State> p = new HashSet<State>();
 				for (State q : s)
 					for (Transition t : q.transitions)
@@ -524,12 +529,14 @@ final public class BasicOperations {
 		LinkedList<StatePair> worklist = new LinkedList<StatePair>(pairs);
 		HashSet<StatePair> workset = new HashSet<StatePair>(pairs);
 		while (!worklist.isEmpty()) {
+			AutomatonTimeouts.check("addEpsilons");
 			StatePair p = worklist.removeFirst();
 			workset.remove(p);
 			HashSet<State> to = forward.get(p.s2);
 			HashSet<State> from = back.get(p.s1);
 			if (to != null) {
 				for (State s : to) {
+					AutomatonTimeouts.check("addEpsilons");
 					StatePair pp = new StatePair(p.s1, s);
 					if (!pairs.contains(pp)) {
 						pairs.add(pp);

@@ -5,7 +5,7 @@
 
   <groupId>dk.brics</groupId>
   <artifactId>automaton</artifactId>
-  <version>1.12-4</version>
+  <version>1.12-4-ostrich-1</version>
   <packaging>jar</packaging>
 
   <name>dk.brics.automaton</name>
@@ -13,7 +13,7 @@
     This package contains a full DFA/NFA implementation with Unicode
     alphabet and support for all standard regular expression operations.
   </description>
-  <url>http://www.brics.dk/automaton</url>
+  <url>https://github.com/OliverMa1/dk.brics.automaton</url>
 
   <licenses>
     <license>
@@ -30,19 +30,18 @@
       <url>https://cs.au.dk/~amoeller</url>
       <organization>Aarhus University</organization>
     </developer>
+    <developer>
+      <id>oliver.markgraf</id>
+      <name>Oliver Markgraf</name>
+      <email>markgraf@cs.uni-kl.de</email>
+      <url>https://arg.cs.uni-kl.de/gruppe/markgraf/</url>
+    </developer>
   </developers>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <scm>
-    <connection>scm:git:git://github.com/cs-au-dk/dk.brics.automaton.git</connection>
-    <developerConnection>scm:git:ssh://github.com:cs-au-dk/dk.brics.automaton.git</developerConnection>
-    <url>https://github.com/cs-au-dk/dk.brics.automaton</url>
+    <connection>scm:git:https://github.com/OliverMa1/dk.brics.automaton.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/OliverMa1/dk.brics.automaton.git</developerConnection>
+    <url>https://github.com/OliverMa1/dk.brics.automaton</url>
   </scm>
 
   <properties>
@@ -61,17 +60,6 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.8</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
         </configuration>
       </plugin>
       <plugin>
@@ -105,24 +93,7 @@
           <nodeprecated>true</nodeprecated>
           <notree>true</notree>
           <nohelp>true</nohelp>
-          <links>
-            <link>https://docs.oracle.com/javase/8/docs/api/</link>
-          </links>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>3.0.1</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
