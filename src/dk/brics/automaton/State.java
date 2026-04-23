@@ -32,7 +32,7 @@ package dk.brics.automaton;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -64,7 +64,7 @@ public class State implements Serializable, Comparable<State> {
 	 * Resets transition set. 
 	 */
 	final void resetTransitions() {
-		transitions = new HashSet<Transition>();
+		transitions = new LinkedHashSet<Transition>();
 	}
 	
 	/** 
@@ -107,9 +107,13 @@ public class State implements Serializable, Comparable<State> {
 	 * @see #step(char, Collection)
 	 */
 	public State step(char c) {
-		for (Transition t : transitions)
+		int checks = 0;
+		for (Transition t : transitions) {
+			if ((checks++ & 0xFF) == 0)
+				AutomatonTimeouts.check("run");
 			if (t.min <= c && c <= t.max)
 				return t.to;
+		}
 		return null;
 	}
 
@@ -120,9 +124,13 @@ public class State implements Serializable, Comparable<State> {
 	 * @see #step(char)
 	 */
 	public void step(char c, Collection<State> dest) {
-		for (Transition t : transitions)
+		int checks = 0;
+		for (Transition t : transitions) {
+			if ((checks++ & 0xFF) == 0)
+				AutomatonTimeouts.check("run");
 			if (t.min <= c && c <= t.max)
 				dest.add(t.to);
+		}
 	}
 
 	void addEpsilon(State to) {

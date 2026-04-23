@@ -655,6 +655,7 @@ final public class BasicOperations {
 		if (a.deterministic) {
 			State p = a.initial;
 			for (int i = 0; i < s.length(); i++) {
+				AutomatonTimeouts.check("run");
 				State q = p.step(s.charAt(i));
 				if (q == null)
 					return false;
@@ -662,6 +663,7 @@ final public class BasicOperations {
 			}
 			return p.accept;
 		} else {
+			AutomatonTimeouts.check("run");
 			Set<State> states = a.getStates();
 			Automaton.setStateNumbers(states);
 			LinkedList<State> pp = new LinkedList<State>();
@@ -672,14 +674,19 @@ final public class BasicOperations {
 			ArrayList<State> dest = new ArrayList<State>();
 			boolean accept = a.initial.accept;
 			for (int i = 0; i < s.length(); i++) {
+				AutomatonTimeouts.check("run");
 				char c = s.charAt(i);
 				accept = false;
 				pp_other.clear();
 				bb_other.clear();
 				for (State p : pp) {
+					AutomatonTimeouts.check("run");
 					dest.clear();
 					p.step(c, dest);
+					int destChecks = 0;
 					for (State q : dest) {
+						if ((destChecks++ & 0xFF) == 0)
+							AutomatonTimeouts.check("run");
 						if (q.accept)
 							accept = true;
 						if (!bb_other.get(q.number)) {
